@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Price Prediction</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7fc;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: #fff;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 1200px;
+            margin: 30px auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 1.2em;
+            margin-bottom: 8px;
+            display: block;
+            color: #555;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1.1em;
+            margin-top: 8px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, select:focus {
+            border-color: #3498db;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            font-size: 1.1em;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            background-color: #1c5980;
+        }
+
+        /* Display Styles */
+        .chart-container {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .stock-details {
+            margin-top: 30px;
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stock-details h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .stock-details ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .stock-details li {
+            font-size: 1.1em;
+            margin: 8px 0;
+            color: #555;
+        }
+
+        .prediction-list {
+            margin-top: 30px;
+        }
+
+        .prediction-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .prediction-list li {
+            font-size: 1.2em;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .recommendation {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .recommendation.buy {
+            color: #27ae60;
+        }
+
+        .recommendation.sell {
+            color: #e74c3c;
+        }
+
+        .recommendation.hold {
+            color: #f39c12;
+        }
+
+        /* Hover Effects */
+        .form-group input[type="text"]:hover, .form-group select:hover {
+            border-color: #3498db;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Stock Price Prediction</h1>
+</header>
+
+<div class="container">
+    <!-- Input Form -->
+    <form method="POST">
+        <div class="form-group">
+            <label for="symbol">Stock Symbol:</label>
+            <input type="text" id="symbol" name="symbol" required placeholder="Enter stock symbol (e.g., AAPL)">
+        </div>
+
+        <div class="form-group">
+            <label for="period">Select Period:</label>
+            <select id="period" name="period">
+                <option value="7d">7 Days</option>
+                <option value="1mo">1 Month</option>
+                <option value="1y">1 Year</option>
+            </select>
+        </div>
+
+        <button type="submit">Get Prediction</button>
+    </form>
+
+    <!-- Stock Details Section -->
+    {% if stock_details %}
+        <div class="stock-details">
+            <h3>Stock Details</h3>
+            <ul>
+                <li><strong>Open:</strong> ₹{{ stock_details['Open'] }}</li>
+                <li><strong>Close:</strong> ₹{{ stock_details['Close'] }}</li>
+                <li><strong>High:</strong> ₹{{ stock_details['High'] }}</li>
+                <li><strong>Low:</strong> ₹{{ stock_details['Low'] }}</li>
+                <li><strong>Volume:</strong> {{ stock_details['Volume'] }}</li>
+            </ul>
+        </div>
+    {% endif %}
+
+    <!-- Chart Section -->
+    {% if img_base64 %}
+        <div class="chart-container">
+            <h2>Stock Price Trend</h2>
+            <img src="data:image/png;base64,{{ img_base64 }}" alt="Stock Price Trend">
+        </div>
+    {% endif %}
+
+    <!-- Predictions -->
+    {% if predictions %}
+        <div class="prediction-list">
+            <h3>Predictions for the Next 5 Days:</h3>
+            <ul>
+                {% for date, price in predictions.items() %}
+                    <li>{{ date }}: ₹{{ price }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <!-- Recommendation -->
+    {% if recommendation %}
+        <div class="recommendation {{ recommendation | lower }}">
+            Recommendation: {{ recommendation }}
+        </div>
+    {% endif %}
+</div>
+
+</body>
+</html>
